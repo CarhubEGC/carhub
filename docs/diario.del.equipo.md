@@ -26,4 +26,8 @@ Nos reunimos para preparar y documentar el acta fundacional, cuya fecha prevista
 
 Nos reunimos en clase durante la entrega del acta fundacional, y en ella creamos el Github project para el seguimiento de las incidencias, creación de plantillas para las incidencias, plantillas de creación de commits
 
+**Punto a tratar en próxima reunión:**
+
+Dividir los workItems en tareas
+
 # Decisiones importantes
