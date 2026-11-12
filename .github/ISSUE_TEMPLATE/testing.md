@@ -1,26 +1,26 @@
 ---
-name: Propuesta de Testing
-about: Proponer pruebas para verificar el comportamiento del proyecto.
+name: Testing Proposal
+about: Propose tests to verify the project's behavior.
 title: '[TEST] '
-labels: ['testing', 'necesita revisión']
+labels: ['testing', 'needs review']
 assignees: ''
 ---
-### Descripción de las pruebas
-Describe las pruebas que se propone añadir o mejorar.
+### Test Description
+Describe the tests you propose adding or improving.
 
-### Objetivo/Aportación de las pruebas
-Explica qué comportamiento, requisito o posible regresión se quiere verificar.
+### Test Goal/Contribution
+Explain which behavior, requirement, or potential regression should be verified.
 
-### Comportamiento o funcionalidad que se va a probar
-Indica qué parte del proyecto se probará y cuál es su comportamiento actual.
+### Behavior or Feature to Test
+Specify which part of the project will be tested and how it currently behaves.
 
-### Casos de prueba
-Enumera los escenarios que deberían cubrirse, incluyendo los casos límite o de error que sean relevantes.
+### Test Cases
+List the scenarios that should be covered, including relevant edge cases or error cases.
 1. ...
 2. ...
 
-### Resultado esperado
-Describe los resultados que deberían obtenerse al ejecutar las pruebas.
+### Expected Result
+Describe the results expected when running the tests.
 
-### Entorno o tipo de pruebas
-Indica, si se conoce, si se trata de pruebas unitarias, de integración o de extremo a extremo, y cualquier requisito para ejecutarlas.
+### Environment or Test Type
+If known, specify whether these are unit, integration, or end-to-end tests, and list any requirements for running them.
