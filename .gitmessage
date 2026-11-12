@@ -1,0 +1,7 @@
+<tipo>: <descripción>
+
+<cuerpo opcional>
+
+[Closes/Refs] #<id-issue>
+
+# Tipos permitidos: feat | fix | docs | refactor | test | devops
