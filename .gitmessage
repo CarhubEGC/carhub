@@ -1,14 +1,7 @@
-# <tipo>: <descripción>
-#
-# Tipos:
-# feat     - Nueva funcionalidad
-# fix      - Corrección de errores
-# docs     - Documentación
-# refactor - Refactorización de código
-# test     - Pruebas
-# devops   - Infraestructura y configuración
-#
-# Ejemplo:
-# feat: add user authentication
-#
-# Descripción detallada (opcional):
+<tipo>: <descripción>
+
+<cuerpo opcional>
+
+[Closes/Refs] #<id-issue>
+
+# Tipos permitidos: feat | fix | docs | refactor | test | devops
