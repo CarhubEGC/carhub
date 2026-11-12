@@ -1,27 +1,27 @@
 ---
-name: Feature Request
-about: Report a potential new feature.
-title: '[FEATURE REQUEST] '
-labels: ['feature', 'consider new feature']
+name: Solicitud de funcionalidad
+about: Crear un reporte sobre una posible nueva funcionalidad.
+title: '[FEATURE REQUEST]'
+labels: ['feature', 'considerar nueva funcionalidad']
 assignees: ''
 ---
-### Proposal Description
-A clear and concise description of the new feature.
+### Descripción de la propuesta
+Una descripción clara y concisa de la nueva funcionalidad.
 
-### Proposal Goal/Contribution
-Explain the value this new feature would add.
+### Objetivo/Aportación de la propuesta
+Una descripción clara sobre cuál es el valor añadido de la nueva funcionalidad.
 
-### Current Behavior
-Clearly describe how it currently works, focusing on what is missing and would be addressed by this feature.
+### Comportamiento actual
+Una descripción clara sobre como funciona actualmente, enfocandose en lo que falta que esta funcionalidad cubre.
 
-### Expected Behavior
-Clearly describe how the project should work after this new feature is implemented.
+### Comportamiento esperado
+Una descripción clara sobre como debería funcionar el proyecto tras incluir esta nueva funcionalidad.
 
-### Suggested Testing
-Describe tests that would help verify the new feature.
+### Testing sugerido
+Una descripción sobre pruebas que ayudarian a verificar la nueva funcionalidad.
 
-### Steps to Reproduce
-1. Go to '...'
-2. Click '...'
-3. Scroll to '...'
-4. Observe the result.
+### Pasos para reproducir
+1. Ir a '...'
+2. Hacer clic en '...'
+3. Desplazarse hasta '...'
+4. Ver el resultado.

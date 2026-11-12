@@ -1,24 +1,24 @@
 ---
-name: Bug Report
-about: Report a bug to help us fix it.
+name: Reporte de Error (Bug)
+about: Crea un reporte para ayudar a solucionar un fallo.
 title: '[BUG] '
-labels: ['bug', 'needs review']
+labels: ['bug', 'necesita revisión']
 assignees: ''
 ---
-### Problem Description
-A clear and concise description of the bug.
+### Descripción del problema
+Una descripción clara y concisa del error.
 
-## Steps to Reproduce
-1. Go to '...'
-2. Click '...'
-3. Scroll to '...'
-4. Observe the error.
+## Pasos para reproducir
+1. Ir a '...'
+2. Hacer clic en '...'
+3. Desplazarse hasta '...'
+4. Ver el error.
 
-## Expected Behavior
-Clearly describe what you expected to happen.
+## Comportamiento esperado
+Una descripción clara de lo esperado que pasara.
 
-## Environment
-Clearly describe the environment, including version information.
+## Entorno usado
+Una descripción clara del entorno que se usa incluido versionado.
 
-## Screenshots
-If applicable, add screenshots to help explain the problem.
+## Capturas de pantalla
+Si aplica, añade capturas para explicar el problema.
