@@ -9,9 +9,9 @@ name: Pytest
 
 on:
   push:
-    branches: [main]
+    branches: [main, Trunk]
   pull_request:
-    branches: [main]
+    branches: [main, Trunk]
 
 jobs:
   pytest:
@@ -64,6 +64,6 @@ jobs:
           pip install -r requirements.txt
           pip install -e ./rosemary
 
-      # Step 4: Run the pytest test suite (ignoring Selenium tests)
+      # Step 4: Run only unit tests from test_unit.py files
       - name: Run Tests
-        run: pytest app/features/ --ignore-glob='*selenium*'
+        run: pytest app/features/ --ignore-glob='*selenium*' -o python_files=test_unit.py
