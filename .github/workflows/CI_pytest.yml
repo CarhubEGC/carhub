@@ -9,9 +9,9 @@ name: Pytest
 
 on:
   push:
-    branches: [main, Trunk]
+    branches: [main]
   pull_request:
-    branches: [main, Trunk]
+    branches: [main]
 
 jobs:
   pytest:
@@ -66,4 +66,4 @@ jobs:
 
       # Step 4: Run only unit tests from test_unit.py files
       - name: Run Tests
-        run: pytest app/features/ --ignore-glob='*selenium*' -o python_files=test_unit.py
+        run: pytest app/features/ --ignore-glob='*selenium*'
