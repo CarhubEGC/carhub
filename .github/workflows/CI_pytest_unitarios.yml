@@ -5,7 +5,7 @@
 # variables for both the service and the test environment.
 # ----------------------------------------------------------------------------
 
-name: Pytest
+name: UnitPytest
 
 on:
   push:
