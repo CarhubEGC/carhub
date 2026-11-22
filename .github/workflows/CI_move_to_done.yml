@@ -15,8 +15,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Find issue references in commits
-        id: issues
+      - name: Extract issue number
+        id: issue
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
         run: |
           
 
