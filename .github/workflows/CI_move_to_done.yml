@@ -19,17 +19,28 @@ jobs:
       - name: Find issue references in commits
         id: issues
         run: |
-          COMMITS=$(git log "${{ github.event.before }}..${{ github.sha }}" --pretty=%B)
-          ISSUES=$(echo "$COMMITS" | grep -Eio '(Closes|Refs)[[:space:]]+#[0-9]+' | grep -Eo '[0-9]+' | sort -u | tr '\n' ' ' || true)
-          echo "numbers=$ISSUES" >> "$GITHUB_OUTPUT"
+          
+
+          MESSAGES=$(git log "$BEFORE..${GITHUB_SHA}" --format=%B)
+
+          echo "Commit messages:"
+          echo "$MESSAGES"
+
+          if [[ "$MESSAGES" =~ (Closes|Refs)[[:space:]]+#([0-9]+) ]]; then
+            ISSUE_NUMBER="${BASH_REMATCH[2]}"
+            echo "Issue found: #$ISSUE_NUMBER"
+            echo "number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          else
+            echo "No linked issue found in commit messages."
+          fi
 
       - name: Move issues to Done
         if: steps.issues.outputs.numbers != ''
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-          PROJECT_ID: ${{ secrets.PROJECT_ID }}
-          STATUS_FIELD_ID: ${{ secrets.STATUS_FIELD_ID }}
-          DONE_OPTION_ID: ${{ secrets.DONE_OPTION_ID }}
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          STATUS_FIELD_ID: ${{ vars.STATUS_FIELD_ID }}
+          DONE_OPTION_ID: ${{ vars.DONE_OPTION_ID }}
           REPOSITORY: ${{ github.repository }}
           ISSUE_NUMBERS: ${{ steps.issues.outputs.numbers }}
         run: |
