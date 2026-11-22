@@ -1,0 +1,98 @@
+
+name: Update issue status to Done
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-issue-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find issue references in commits
+        id: issues
+        run: |
+          COMMITS=$(git log "${{ github.event.before }}..${{ github.sha }}" --pretty=%B)
+          ISSUES=$(echo "$COMMITS" | grep -Eio '(Closes|Refs)[[:space:]]+#[0-9]+' | grep -Eo '[0-9]+' | sort -u | tr '\n' ' ' || true)
+          echo "numbers=$ISSUES" >> "$GITHUB_OUTPUT"
+
+      - name: Move issues to Done
+        if: steps.issues.outputs.numbers != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          STATUS_FIELD_ID: ${{ secrets.STATUS_FIELD_ID }}
+          DONE_OPTION_ID: ${{ secrets.DONE_OPTION_ID }}
+          REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBERS: ${{ steps.issues.outputs.numbers }}
+        run: |
+          OWNER="${REPOSITORY%%/*}"
+          REPO="${REPOSITORY##*/}"
+
+          for NUMBER in $ISSUE_NUMBERS; do
+            echo "Processing issue #$NUMBER"
+
+            ISSUE_ID=$(gh api graphql \
+              -f query='query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) { id }
+                }
+              }' \
+              -f owner="$OWNER" \
+              -f repo="$REPO" \
+              -F number="$NUMBER" \
+              --jq '.data.repository.issue.id')
+
+            if [ -z "$ISSUE_ID" ] || [ "$ISSUE_ID" = "null" ]; then
+              echo "Issue #$NUMBER not found; skipping"
+              continue
+            fi
+
+            ITEM_ID=$(gh api graphql \
+              -f query='query($projectId: ID!, $issueId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    items(first: 100) {
+                      nodes {
+                        id
+                        content { ... on Issue { id } }
+                      }
+                    }
+                  }
+                }
+              }' \
+              -f projectId="$PROJECT_ID" \
+              -f issueId="$ISSUE_ID" \
+              --jq ".data.node.items.nodes[] | select(.content.id == \"$ISSUE_ID\") | .id" \
+              | head -n 1)
+
+            if [ -z "$ITEM_ID" ]; then
+              echo "Issue #$NUMBER is not in the project; skipping"
+              continue
+            fi
+
+            gh api graphql \
+              -f query='mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: { singleSelectOptionId: $optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }' \
+              -f projectId="$PROJECT_ID" \
+              -f itemId="$ITEM_ID" \
+              -f fieldId="$STATUS_FIELD_ID" \
+              -f optionId="$DONE_OPTION_ID"
+
+            echo "Issue #$NUMBER moved to Done"
+          done
