@@ -49,63 +49,79 @@ jobs:
           OWNER="${REPOSITORY%%/*}"
           REPO="${REPOSITORY##*/}"
 
-          for NUMBER in $ISSUE_NUMBERS; do
-            echo "Processing issue #$NUMBER"
-
-            ISSUE_ID=$(gh api graphql \
-              -f query='query($owner: String!, $repo: String!, $number: Int!) {
+          ISSUE_ID=$(gh api graphql \
+            -f query='
+              query($owner: String!, $repo: String!, $number: Int!) {
                 repository(owner: $owner, name: $repo) {
-                  issue(number: $number) { id }
+                  issue(number: $number) {
+                    id
+                  }
                 }
               }' \
-              -f owner="$OWNER" \
-              -f repo="$REPO" \
-              -F number="$NUMBER" \
-              --jq '.data.repository.issue.id')
+            -f owner="$OWNER" \
+            -f repo="$REPO" \
+            -F number="$ISSUE_NUMBER" \
+            --jq '.data.repository.issue.id')
 
-            if [ -z "$ISSUE_ID" ] || [ "$ISSUE_ID" = "null" ]; then
-              echo "Issue #$NUMBER not found; skipping"
-              continue
-            fi
+          if [ -z "$ISSUE_ID" ] || [ "$ISSUE_ID" = "null" ]; then
+            echo "Issue #$ISSUE_NUMBER not found"
+            exit 1
+          fi
 
-            ITEM_ID=$(gh api graphql \
-              -f query='query($projectId: ID!, $issueId: ID!) {
+          ITEM_ID=$(gh api graphql \
+            -f query='
+              query($projectId: ID!) {
                 node(id: $projectId) {
                   ... on ProjectV2 {
                     items(first: 100) {
                       nodes {
                         id
-                        content { ... on Issue { id } }
+                        content {
+                          ... on Issue {
+                            id
+                          }
+                        }
                       }
                     }
                   }
                 }
               }' \
-              -f projectId="$PROJECT_ID" \
-              -f issueId="$ISSUE_ID" \
-              --jq ".data.node.items.nodes[] | select(.content.id == \"$ISSUE_ID\") | .id" \
-              | head -n 1)
+            -f projectId="$PROJECT_ID" \
+            --jq ".data.node.items.nodes[]
+              | select(.content.id == \"$ISSUE_ID\")
+              | .id")
 
-            if [ -z "$ITEM_ID" ]; then
-              echo "Issue #$NUMBER is not in the project; skipping"
-              continue
-            fi
+          if [ -z "$ITEM_ID" ]; then
+            echo "Issue #$ISSUE_NUMBER is not in the project"
+            exit 1
+          fi
 
-            gh api graphql \
-              -f query='mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                updateProjectV2ItemFieldValue(input: {
-                  projectId: $projectId
-                  itemId: $itemId
-                  fieldId: $fieldId
-                  value: { singleSelectOptionId: $optionId }
-                }) {
-                  projectV2Item { id }
+          gh api graphql \
+            -f query='
+              mutation(
+                $projectId: ID!,
+                $itemId: ID!,
+                $fieldId: ID!,
+                $optionId: String!
+              ) {
+                updateProjectV2ItemFieldValue(
+                  input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: {
+                      singleSelectOptionId: $optionId
+                    }
+                  }
+                ) {
+                  projectV2Item {
+                    id
+                  }
                 }
               }' \
-              -f projectId="$PROJECT_ID" \
-              -f itemId="$ITEM_ID" \
-              -f fieldId="$STATUS_FIELD_ID" \
-              -f optionId="$DONE_STATUS_ID"
+            -f projectId="$PROJECT_ID" \
+            -f itemId="$ITEM_ID" \
+            -f fieldId="$STATUS_FIELD_ID" \
+            -f optionId="$DONE_STATUS_ID"
 
-            echo "Issue #$NUMBER moved to Done"
-          done
+          echo "Issue #$ISSUE_NUMBER moved to Done!"
