@@ -25,7 +25,7 @@ jobs:
           echo "Commit messages:"
           echo "$MESSAGES"
 
-          if [[ "$MESSAGES" =~ (Closes|Refs)[[:space:]]+#([0-9]+) ]]; then
+          if [[ "$MESSAGES" =~ (Closes|Refs)[[:space:]]*#([0-9]+) ]]; then
             ISSUE_NUMBER="${BASH_REMATCH[2]}"
             echo "Issue found: #$ISSUE_NUMBER"
             echo "number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
