@@ -36,15 +36,15 @@ jobs:
             echo "No linked issue found in commit messages."
           fi
 
-      - name: Move issues to Done
-        if: steps.issues.outputs.numbers != ''
+      - name: Update GitHub Project status
+        if: steps.issue.outputs.number != ''
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           PROJECT_ID: ${{ vars.PROJECT_ID }}
           STATUS_FIELD_ID: ${{ vars.STATUS_FIELD_ID }}
-          DONE_OPTION_ID: ${{ vars.DONE_OPTION_ID }}
+          DONE_STATUS_ID: ${{ vars.DONE_STATUS_ID }}
           REPOSITORY: ${{ github.repository }}
-          ISSUE_NUMBERS: ${{ steps.issues.outputs.numbers }}
+          ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
         run: |
           OWNER="${REPOSITORY%%/*}"
           REPO="${REPOSITORY##*/}"
@@ -105,7 +105,7 @@ jobs:
               -f projectId="$PROJECT_ID" \
               -f itemId="$ITEM_ID" \
               -f fieldId="$STATUS_FIELD_ID" \
-              -f optionId="$DONE_OPTION_ID"
+              -f optionId="$DONE_STATUS_ID"
 
             echo "Issue #$NUMBER moved to Done"
           done
