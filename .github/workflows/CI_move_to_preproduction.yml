@@ -42,7 +42,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           PROJECT_ID: ${{ vars.PROJECT_ID }}
           STATUS_FIELD_ID: ${{ vars.STATUS_FIELD_ID }}
-          PREPRODUCTION_OPTION_ID: ${{ vars.PREPRODUCTION_OPTION_ID }}
+          PREPRODUCTION_STATUS_ID: ${{ vars.PREPRODUCTION_STATUS_ID }}
           ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
           REPOSITORY: ${{ github.repository }}
         shell: bash
@@ -123,6 +123,6 @@ jobs:
             -f projectId="$PROJECT_ID" \
             -f itemId="$ITEM_ID" \
             -f fieldId="$STATUS_FIELD_ID" \
-            -f optionId="$PREPRODUCTION_OPTION_ID"
+            -f optionId="$PREPRODUCTION_STATUS_ID"
 
           echo "Issue #$ISSUE_NUMBER moved to Preproduction!"
