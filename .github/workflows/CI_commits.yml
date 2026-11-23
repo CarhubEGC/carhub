@@ -23,4 +23,4 @@ jobs:
       - name: Validate commit messages
         uses: webiny/action-conventional-commits@v1.3.0
         with:
-          allowed-commit-types: "feat,fix,docs,refactor,test,devops"
+          allowed-commit-types: "feat,fix,docs,refactor,test,devops,ci"
