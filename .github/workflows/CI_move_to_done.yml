@@ -1,0 +1,127 @@
+name: Update issue status to Done
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-issue-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract issue number
+        id: issue
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          
+
+          MESSAGES=$(git log "$BEFORE..${GITHUB_SHA}" --format=%B)
+
+          echo "Commit messages:"
+          echo "$MESSAGES"
+
+          if [[ "$MESSAGES" =~ (Closes|Refs)[[:space:]]*#([0-9]+) ]]; then
+            ISSUE_NUMBER="${BASH_REMATCH[2]}"
+            echo "Issue found: #$ISSUE_NUMBER"
+            echo "number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          else
+            echo "No linked issue found in commit messages."
+          fi
+
+      - name: Update GitHub Project status
+        if: steps.issue.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          STATUS_FIELD_ID: ${{ vars.STATUS_FIELD_ID }}
+          DONE_STATUS_ID: ${{ vars.DONE_STATUS_ID }}
+          REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
+        run: |
+          OWNER="${REPOSITORY%%/*}"
+          REPO="${REPOSITORY##*/}"
+
+          ISSUE_ID=$(gh api graphql \
+            -f query='
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) {
+                    id
+                  }
+                }
+              }' \
+            -f owner="$OWNER" \
+            -f repo="$REPO" \
+            -F number="$ISSUE_NUMBER" \
+            --jq '.data.repository.issue.id')
+
+          if [ -z "$ISSUE_ID" ] || [ "$ISSUE_ID" = "null" ]; then
+            echo "Issue #$ISSUE_NUMBER not found"
+            exit 1
+          fi
+
+          ITEM_ID=$(gh api graphql \
+            -f query='
+              query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    items(first: 100) {
+                      nodes {
+                        id
+                        content {
+                          ... on Issue {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }' \
+            -f projectId="$PROJECT_ID" \
+            --jq ".data.node.items.nodes[]
+              | select(.content.id == \"$ISSUE_ID\")
+              | .id")
+
+          if [ -z "$ITEM_ID" ]; then
+            echo "Issue #$ISSUE_NUMBER is not in the project"
+            exit 1
+          fi
+
+          gh api graphql \
+            -f query='
+              mutation(
+                $projectId: ID!,
+                $itemId: ID!,
+                $fieldId: ID!,
+                $optionId: String!
+              ) {
+                updateProjectV2ItemFieldValue(
+                  input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: {
+                      singleSelectOptionId: $optionId
+                    }
+                  }
+                ) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }' \
+            -f projectId="$PROJECT_ID" \
+            -f itemId="$ITEM_ID" \
+            -f fieldId="$STATUS_FIELD_ID" \
+            -f optionId="$DONE_STATUS_ID"
+
+          echo "Issue #$ISSUE_NUMBER moved to Done!"
