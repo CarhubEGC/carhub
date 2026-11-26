@@ -94,3 +94,21 @@ class DataSetForm(FlaskForm):
 
     def get_feature_models(self):
         return [fm.get_feature_model() for fm in self.feature_models]
+
+
+class DataSetEditForm(FlaskForm):
+    title = StringField("Title", validators=[DataRequired()])
+    desc = TextAreaField("Description", validators=[DataRequired()])
+    tags = StringField("Tags (separated by commas)")
+    authors = FieldList(FormField(AuthorForm), min_entries=1)
+    submit = SubmitField("Save changes")
+
+    def get_dsmetadata(self):
+        return {
+            "title": self.title.data,
+            "description": self.desc.data,
+            "tags": self.tags.data,
+        }
+
+    def get_authors(self):
+        return [author.get_author() for author in self.authors]
