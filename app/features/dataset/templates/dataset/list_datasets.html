@@ -40,6 +40,12 @@
                                     <a href="{{ url_for('dataset.download_dataset', dataset_id=dataset.id) }}">
                                         <i data-feather="download"></i>
                                     </a>
+                                    {% if current_user.is_authenticated and current_user.id == dataset.user_id %}
+                                        <a href="{{ url_for('dataset.edit_dataset', dataset_id=dataset.id) }}"
+                                           title="Edit dataset" aria-label="Edit dataset">
+                                            <i data-feather="edit-2"></i>
+                                        </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -104,6 +110,12 @@
                                             <a href="{{ url_for('dataset.download_dataset', dataset_id=local_dataset.id) }}">
                                                 <i data-feather="download"></i>
                                             </a>
+                                            {% if current_user.is_authenticated and current_user.id == local_dataset.user_id %}
+                                                <a href="{{ url_for('dataset.edit_dataset', dataset_id=local_dataset.id) }}"
+                                                   title="Edit dataset" aria-label="Edit dataset">
+                                                    <i data-feather="edit-2"></i>
+                                                </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
