@@ -1,0 +1,151 @@
+{% extends "base_template.html" %}
+
+{% block title %}Edit dataset metadata{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+        <h1 class="h2 mb-3">Edit dataset metadata</h1>
+        {% if show_zenodo_warning %}
+        <div class="alert alert-warning" role="alert" id="test_zenodo_connection_error" style="display: none">
+            <div class="alert-message">
+                <h4 class="alert-heading">
+                    <i class="align-middle" data-feather="alert-triangle"></i>
+                    Limited connection to the Zenodo API
+                </h4>
+                <p class="p-0 m-0">
+                    There seems to be some kind of problem with the Zenodo API and synchronization of your dataset
+                    metadata may not be possible. We will save your changes locally to eventually synchronize them
+                    with Zenodo. Sorry for the inconvenience, Zenodo is an external service and we can't do anything
+                    about it.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+        <p>Changes update the existing Zenodo record. The dataset DOI, publication type, related publication, and uploaded files are not changed.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                {% if category == 'warning' %}
+                    <div class="alert alert-warning" role="alert" id="zenodo_metadata_sync_warning">
+                        <div class="alert-message">
+                            <h4 class="alert-heading">
+                                <i class="align-middle" data-feather="alert-triangle"></i>
+                                Limited connection to the Zenodo API
+                            </h4>
+                            <p class="p-0 m-0">
+                                There seems to be some kind of problem with the Zenodo API and synchronization of your
+                                dataset metadata may not be possible. We saved your changes locally to eventually
+                                synchronize them with Zenodo. Sorry for the inconvenience, Zenodo is an external service
+                                and we can't do anything about it.
+                            </p>
+                            <p class="p-0 mt-2 mb-0">{{ message }}</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}" role="alert">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endwith %}
+
+        <form method="post">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.title.label(class="form-label") }}
+                {{ form.title(class="form-control") }}
+                {% for error in form.title.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.desc.label(class="form-label") }}
+                {{ form.desc(rows=5, class="form-control") }}
+                {% for error in form.desc.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.tags.label(class="form-label") }}
+                {{ form.tags(class="form-control") }}
+                {% for error in form.tags.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+            </div>
+
+            <fieldset class="mb-4">
+                <legend class="h4">Authors</legend>
+                <div id="authors">
+                    {% for author in form.authors %}
+                    <div class="author-entry border rounded p-3 mb-3">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                {{ author.form.name.label(class="form-label") }}
+                                {{ author.form.name(class="form-control") }}
+                                {% for error in author.form.name.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                {{ author.form.affiliation.label(class="form-label") }}
+                                {{ author.form.affiliation(class="form-control") }}
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                {{ author.form.orcid.label(class="form-label") }}
+                                {{ author.form.orcid(class="form-control") }}
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-author">Remove author</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% for error in form.authors.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                <button type="button" id="add-author" class="btn btn-outline-secondary btn-sm">Add author</button>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+            {% if dataset.ds_meta_data.dataset_doi %}
+                <a class="btn btn-secondary" href="{{ url_for('dataset.subdomain_index', doi=dataset.ds_meta_data.dataset_doi) }}">Cancel</a>
+            {% else %}
+                <a class="btn btn-secondary" href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=dataset.id) }}">Cancel</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<script>
+    {% if show_zenodo_warning %}
+    document.addEventListener("DOMContentLoaded", function () {
+        test_zenodo_connection();
+    });
+    {% endif %}
+
+    const authors = document.getElementById("authors");
+    let nextAuthorIndex = {{ form.authors|length }};
+
+    document.getElementById("add-author").addEventListener("click", function () {
+        const index = nextAuthorIndex++;
+        const entry = document.createElement("div");
+        entry.className = "author-entry border rounded p-3 mb-3";
+        entry.innerHTML = `
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    <label class="form-label" for="authors-${index}-name">Name</label>
+                    <input class="form-control" id="authors-${index}-name" name="authors-${index}-name" required>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <label class="form-label" for="authors-${index}-affiliation">Affiliation</label>
+                    <input class="form-control" id="authors-${index}-affiliation" name="authors-${index}-affiliation">
+                </div>
+                <div class="col-md-6 mb-2">
+                    <label class="form-label" for="authors-${index}-orcid">ORCID</label>
+                    <input class="form-control" id="authors-${index}-orcid" name="authors-${index}-orcid">
+                </div>
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-author">Remove author</button>
+                </div>
+            </div>`;
+        authors.appendChild(entry);
+    });
+
+    authors.addEventListener("click", function (event) {
+        if (event.target.classList.contains("remove-author") && authors.children.length > 1) {
+            event.target.closest(".author-entry").remove();
+        }
+    });
+</script>
+{% endblock %}
