@@ -51,10 +51,10 @@ extend-ignore = ["E203", "W503"]
 # --------------------
 
 [tool.pytest.ini_options]
-# Tests live next to the feature they exercise, plus optional cross-feature
-# tests under tests/. Selenium and locust files are excluded by default —
+# Tests live next to the feature or service they exercise, plus optional
+# cross-feature tests under tests/. Selenium and locust files are excluded by default —
 # rosemary test exposes flags to opt into them.
-testpaths = ["app/features", "tests"]
+testpaths = ["app/features", "fakenodo/tests", "tests"]
 python_files = ["test_*.py"]
 filterwarnings = ["ignore::DeprecationWarning"]
 markers = [

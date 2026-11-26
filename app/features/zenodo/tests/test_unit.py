@@ -5,6 +5,8 @@ it wires the access token into the request parameters. No HTTP is performed:
 these tests only exercise configuration logic.
 """
 
+from types import SimpleNamespace
+
 import pytest
 
 from app.features.zenodo.services import ZenodoService
@@ -64,3 +66,20 @@ def test_missing_access_token_leaves_the_param_empty(monkeypatch):
     service = _service(monkeypatch, FLASK_ENV="development")
     assert service.ZENODO_ACCESS_TOKEN is None
     assert service.params == {"access_token": None}
+
+
+@pytest.mark.parametrize("token", [None, "sandbox-token"])
+def test_connection_to_fakenodo_uses_the_configured_url_without_a_token(monkeypatch, token):
+    api_url = "http://fakenodo:5000/api/deposit/depositions"
+    env = {"ZENODO_API_URL": f"{api_url}/"}
+    if token:
+        env["ZENODO_ACCESS_TOKEN"] = token
+    service = _service(monkeypatch, **env)
+
+    def get(url, *, params, headers):
+        assert url == api_url
+        assert params == {}
+        return SimpleNamespace(status_code=200)
+
+    monkeypatch.setattr("app.features.zenodo.services.requests.get", get)
+    assert service.test_connection()
