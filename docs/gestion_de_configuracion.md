@@ -273,6 +273,37 @@ La estructura del repositorio se basará en dos ramas principales, que nos servi
 
 - **trunk**: En esta rama llevaremos a cabo el desarrollo principal. Todas las nuevas funcionalidades y mejoras serán implementadas aquí antes de ser integradas en main una vez finalizadas y validadas.
 
+### Estructura de carpetas
+ 
+El repositorio parte de un fork de [uvlhub](https://github.com/EGCETSII/uvlhub), por lo que mantiene su organización. La raíz del proyecto en la rama `trunk` queda así:
+ 
+```
+carhub/
+├── .devcontainer/                  # Configuración del entorno de desarrollo en contenedor
+├── .github/                        # Workflows de GitHub Actions y plantilla de commits
+├── app/                            # Código fuente de la aplicación
+├── docker/                         # Ficheros de configuración para despliegue con Docker
+├── docs/                           # Documentación del proyecto
+├── migrations/                     # Migraciones de la base de datos
+├── rosemary/                       # Herramienta CLI del proyecto
+├── scripts/                        # Scripts de utilidad y automatización
+├── tests/                          # Pruebas del proyecto
+├── vagrant/                        # Configuración para entornos con Vagrant
+├── .env.docker.example             # Variables de entorno de ejemplo (Docker)
+├── .env.docker.production.example  # Variables de entorno de ejemplo (Docker, producción)
+├── .env.local.example              # Variables de entorno de ejemplo (local)
+├── .env.vagrant.example            # Variables de entorno de ejemplo (Vagrant)
+├── .env.selenium                   # Variables de entorno para pruebas con Selenium
+├── .gitattributes
+├── .gitignore
+├── .gitmessage                     # Plantilla de mensajes de commit
+├── conftest.py                     # Configuración global de pytest
+├── GUIA_DESPLIEGUE_RENDER.md       # Guía de despliegue en Render
+├── pyproject.toml                  # Configuración del proyecto Python
+├── README.md
+└── requirements.txt                # Dependencias del proyecto
+```
+
 ## 5. Estrategia de ramas (EGCFlow)
 
 ### Ramas de Soporte
