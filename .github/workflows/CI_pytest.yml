@@ -66,4 +66,4 @@ jobs:
 
       # Step 4: Run only unit tests from test_unit.py files
       - name: Run Tests
-        run: pytest app/features/ --ignore-glob='*selenium*'
+        run: pytest app/features/ fakenodo/tests/ --ignore-glob='*selenium*'
