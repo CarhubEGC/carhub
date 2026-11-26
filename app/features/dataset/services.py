@@ -5,11 +5,12 @@ import shutil
 import uuid
 from typing import Optional
 
+import requests
 from flask import request
 from splent_framework.services.BaseService import BaseService
 
 from app.features.auth.services import AuthenticationService
-from app.features.dataset.models import DataSet, DSMetaData, DSViewRecord
+from app.features.dataset.models import Author, DataSet, DSMetaData, DSViewRecord
 from app.features.dataset.repositories import (
     AuthorRepository,
     DataSetRepository,
@@ -132,6 +133,70 @@ class DataSetService(BaseService):
 
     def update_dsmetadata(self, id, **kwargs):
         return self.dsmetadata_repository.update(id, **kwargs)
+
+    def update_metadata(self, dataset: DataSet, form) -> None:
+        metadata = dataset.ds_meta_data
+        values = form.get_dsmetadata()
+        metadata.title = values["title"]
+        metadata.description = values["description"]
+        metadata.tags = values["tags"]
+        metadata.authors = [Author(**author_data) for author_data in form.get_authors()]
+
+        try:
+            self.repository.session.commit()
+        except Exception:
+            self.repository.session.rollback()
+            raise
+
+    def update_deposition_metadata(self, dataset: DataSet, form) -> None:
+        from app.features.zenodo.services import ZenodoService
+
+        zenodo = ZenodoService()
+        values = form.get_dsmetadata()
+        publication_type = dataset.ds_meta_data.publication_type
+        creators = [
+            {
+                "name": author["name"],
+                **({"affiliation": author["affiliation"]} if author["affiliation"] else {}),
+                **({"orcid": author["orcid"]} if author["orcid"] else {}),
+            }
+            for author in form.get_authors()
+        ]
+        tags = values["tags"]
+        zenodo_metadata = {
+            "title": values["title"],
+            "upload_type": "dataset" if publication_type.value == "none" else "publication",
+            **({"publication_type": publication_type.value} if publication_type.value != "none" else {}),
+            "description": values["description"],
+            "creators": creators,
+            "keywords": ["uvlhub"] if not tags else tags.split(", ") + ["uvlhub"],
+            "related_identifiers": (
+                [{"identifier": dataset.ds_meta_data.publication_doi, "relation": "isSupplementTo"}]
+                if dataset.ds_meta_data.publication_doi
+                else []
+            ),
+            "access_right": "open",
+            "license": "CC-BY-4.0",
+        }
+
+        edit_url = f"{zenodo.ZENODO_API_URL}/{dataset.ds_meta_data.deposition_id}/actions/edit"
+        edit_response = requests.post(edit_url, params=zenodo.params, headers=zenodo.headers)
+        publish_after_update = edit_response.status_code != 404
+        if publish_after_update and edit_response.status_code != 201:
+            raise Exception(f"Failed to edit deposition. Response code: {edit_response.status_code}")
+
+        deposition_url = f"{zenodo.ZENODO_API_URL}/{dataset.ds_meta_data.deposition_id}"
+        update_response = requests.put(
+            deposition_url,
+            params=zenodo.params,
+            json={"metadata": zenodo_metadata},
+            headers=zenodo.headers,
+        )
+        if update_response.status_code not in (200, 201):
+            raise Exception(f"Failed to update deposition metadata. Response code: {update_response.status_code}")
+
+        if publish_after_update:
+            zenodo.publish_deposition(dataset.ds_meta_data.deposition_id)
 
     def save_temp_uvl(self, file, current_user) -> dict:
         """Persist an uploaded UVL file under the current user's temp folder.

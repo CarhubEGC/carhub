@@ -3,6 +3,7 @@ import uuid
 
 from flask import (
     abort,
+    flash,
     jsonify,
     make_response,
     redirect,
@@ -14,7 +15,7 @@ from flask import (
 from flask_login import current_user, login_required
 
 from app.features.dataset import dataset_bp
-from app.features.dataset.forms import DataSetForm
+from app.features.dataset.forms import DataSetEditForm, DataSetForm
 from app.features.dataset.services import (
     DataSetService,
     DOIMappingService,
@@ -47,6 +48,63 @@ def upload_dataset():
 
     result = dataset_service.upload_dataset(form=form, current_user=current_user)
     return jsonify({"message": result["message"]}), result["code"]
+
+
+@dataset_bp.route("/dataset/<int:dataset_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_dataset(dataset_id):
+    dataset = dataset_service.get_or_404(dataset_id)
+    if dataset.user_id != current_user.id:
+        abort(403)
+
+    if request.method == "GET":
+        form = DataSetEditForm(
+            data={
+                "title": dataset.ds_meta_data.title,
+                "desc": dataset.ds_meta_data.description,
+                "tags": dataset.ds_meta_data.tags,
+                "authors": [
+                    {
+                        "name": author.name,
+                        "affiliation": author.affiliation,
+                        "orcid": author.orcid,
+                    }
+                    for author in dataset.ds_meta_data.authors
+                ],
+            }
+        )
+    else:
+        form = DataSetEditForm()
+        if form.validate_on_submit():
+            sync_error = None
+            if dataset.ds_meta_data.dataset_doi and dataset.ds_meta_data.deposition_id:
+                try:
+                    dataset_service.update_deposition_metadata(dataset, form)
+                except Exception as exc:
+                    logger.exception("Could not update dataset metadata on Zenodo: %s", exc)
+                    sync_error = str(exc)
+
+            dataset_service.update_metadata(dataset, form)
+            if sync_error:
+                flash(f"Saved locally, but could not update the existing Zenodo record: {sync_error}", "warning")
+                return render_template(
+                    "dataset/edit_dataset.html",
+                    dataset=dataset,
+                    form=form,
+                    show_zenodo_warning=False,
+                )
+
+            flash("Dataset metadata updated.", "success")
+            if dataset.ds_meta_data.dataset_doi:
+                return redirect(url_for("dataset.subdomain_index", doi=dataset.ds_meta_data.dataset_doi))
+            return redirect(url_for("dataset.get_unsynchronized_dataset", dataset_id=dataset.id))
+
+    return render_template(
+        "dataset/edit_dataset.html",
+        dataset=dataset,
+        form=form,
+        show_zenodo_warning=request.method == "GET",
+    )
 
 
 @dataset_bp.route("/dataset/list", methods=["GET", "POST"])
