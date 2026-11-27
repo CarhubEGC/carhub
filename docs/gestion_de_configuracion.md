@@ -10,27 +10,24 @@ Este documento describe la metodología de gestión de configuración que seguir
  
  | Versión | Contenido       |
  |---------|-----------------|
- | 1.0     | Versión inicial |
+ | 1.0.0   | Versión inicial |
+ | 1.0.1   | Corrección bug 25  |
 
 ## Índice
 
-1. [Estándares de código](#estándares-de-código)
-2. [Políticas de mensajes de commit](#políticas-de-mensajes-de-commit)
-3. [Propuestas de mejora](propuestas-de-mejora)
-  -
-  -
-  -
-  -
-4. [Estructura de repositorios y ramas por defecto](#estructura-de-repositorios-y-ramas-por-defecto)
-5. [Estrategia de ramas (EGCFlow)](#estrategia-de-ramas-egcflow)
-  - [Ramas de Soporte](#ramas-de-soporte)
-    - [Ramas `features`](#ramas-features)
-    - [Ramas `bugfix`](#ramas-bugfix)
-  - [Cómo desarrollar ramas de feature](#cómo-desarrollar-ramas-de-feature)
-  - [Cómo preparar releases](#cómo-preparar-releases)
-  - [Cómo solucionar errores en una release](#cómo-solucionar-errores-en-una-release)
-6. [Políticas de versionado](#políticas-de-versionado)
-7. [Definición de "hecho"](#definición-de-hecho)
+1. [Estándares de código](#1-estándares-de-código)
+2. [Políticas de mensajes de commit](#2-políticas-de-mensajes-de-commit)
+3. [Plantillas de propuestas](#3-plantillas-de-propuestas)
+4. [Estructura de repositorios y ramas por defecto](#4-estructura-de-repositorios-y-ramas-por-defecto)
+5. [Estrategia de ramas (EGCFlow)](#5-estrategia-de-ramas-egcflow)
+   - [Ramas de Soporte](#ramas-de-soporte)
+      - [Ramas `features`](#1-ramas-features)
+      - [Ramas `bugfix`](#2-ramas-bugfix)
+   - [Cómo desarrollar ramas de feature](#cómo-desarrollar-ramas-de-feature)
+   - [Cómo solucionar errores en una release](#cómo-solucionar-errores-en-una-release)
+6. [Políticas de versionado](#6-políticas-de-versionado)
+7. [Definición de "hecho"](#7-definición-de-hecho)
+
 
 # 1. Estándares de código
 
