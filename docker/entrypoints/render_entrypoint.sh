@@ -57,6 +57,29 @@ else
     flask db upgrade
 fi
 
-# Start the application using Gunicorn, binding it to port 80
-# Set the logging level to info and the timeout to 3600 seconds
-exec gunicorn --bind 0.0.0.0:80 app:app --log-level info --timeout 3600
+web_command=(gunicorn --bind 0.0.0.0:80 app:app --log-level info --timeout 3600)
+fakenodo_url=http://127.0.0.1:5000/api/deposit/depositions
+
+if [[ "${ZENODO_API_URL%/}" != "$fakenodo_url" ]]; then
+    exec "${web_command[@]}"
+fi
+
+export ZENODO_ACCESS_TOKEN=
+
+gunicorn --bind 127.0.0.1:5000 'fakenodo.app:create_app()' --log-level info &
+fakenodo_pid=$!
+"${web_command[@]}" &
+web_pid=$!
+
+stop_servers() {
+    kill -TERM "$web_pid" "$fakenodo_pid" 2>/dev/null || true
+    wait "$web_pid" "$fakenodo_pid" 2>/dev/null || true
+}
+
+trap 'stop_servers; exit 0' TERM INT
+
+# If either server stops, shut down its sibling and let Render restart the container.
+status=0
+wait -n "$web_pid" "$fakenodo_pid" || status=$?
+stop_servers
+exit "$((status == 0 ? 1 : status))"

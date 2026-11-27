@@ -45,6 +45,7 @@ ENV PYTHONPATH=/workspace
 
 # Copy files
 COPY app/ ./app
+COPY fakenodo/ ./fakenodo
 COPY migrations/ ./migrations
 # The feature loader reads [tool.splent] from the directory above app/.
 # Without this file the declarative filter is inactive and every package
