@@ -1,5 +1,6 @@
 import logging
 import os
+from urllib.parse import urlsplit
 
 import requests
 from dotenv import load_dotenv
@@ -19,7 +20,8 @@ load_dotenv()
 
 class ZenodoService(BaseService):
 
-    def get_zenodo_url(self):
+    @staticmethod
+    def get_zenodo_url():
 
         FLASK_ENV = os.getenv("FLASK_ENV", "development")
 
@@ -28,7 +30,16 @@ class ZenodoService(BaseService):
         else:
             default_url = "https://sandbox.zenodo.org/api/deposit/depositions"
 
-        return os.getenv("ZENODO_API_URL", default_url)
+        return os.getenv("ZENODO_API_URL", default_url).rstrip("/")
+
+    @classmethod
+    def get_record_url(cls, deposition_id: int) -> str:
+        api_url = cls.get_zenodo_url()
+        if urlsplit(api_url).hostname == "fakenodo":
+            return f"/fakenodo/records/{deposition_id}"
+
+        base_url = api_url.removesuffix("/api/deposit/depositions")
+        return f"{base_url}/records/{deposition_id}"
 
     def get_zenodo_access_token(self):
         return os.getenv("ZENODO_ACCESS_TOKEN")
@@ -38,7 +49,9 @@ class ZenodoService(BaseService):
         self.ZENODO_ACCESS_TOKEN = self.get_zenodo_access_token()
         self.ZENODO_API_URL = self.get_zenodo_url()
         self.headers = {"Content-Type": "application/json"}
-        self.params = {"access_token": self.ZENODO_ACCESS_TOKEN}
+        self.params = (
+            {} if urlsplit(self.ZENODO_API_URL).hostname == "fakenodo" else {"access_token": self.ZENODO_ACCESS_TOKEN}
+        )
 
     def test_connection(self) -> bool:
         """

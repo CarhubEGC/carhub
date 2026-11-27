@@ -72,10 +72,23 @@ def test_get_zenodo_url_is_none_without_a_deposition_id():
     assert DataSet.get_zenodo_url(dataset) is None
 
 
-def test_get_zenodo_url_points_at_the_deposition_record():
+@pytest.mark.parametrize(
+    ("environment", "api_url", "expected"),
+    [
+        ("production", None, "https://zenodo.org/records/42"),
+        ("development", None, "https://sandbox.zenodo.org/records/42"),
+        ("development", "http://fakenodo:5000/api/deposit/depositions/", "/fakenodo/records/42"),
+        ("development", "https://example.test/api/deposit/depositions", "https://example.test/records/42"),
+    ],
+)
+def test_get_zenodo_url_points_at_the_configured_deposition_record(monkeypatch, environment, api_url, expected):
+    monkeypatch.setenv("FLASK_ENV", environment)
+    monkeypatch.delenv("ZENODO_API_URL", raising=False)
+    if api_url:
+        monkeypatch.setenv("ZENODO_API_URL", api_url)
     dataset = SimpleNamespace(ds_meta_data=SimpleNamespace(deposition_id=42, dataset_doi="10.1234/dataset1"))
 
-    assert DataSet.get_zenodo_url(dataset) == "https://zenodo.org/record/42"
+    assert DataSet.get_zenodo_url(dataset) == expected
 
 
 def test_files_and_sizes_are_aggregated_across_feature_models():

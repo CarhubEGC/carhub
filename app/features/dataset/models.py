@@ -89,7 +89,9 @@ class DataSet(db.Model):
 
     def get_zenodo_url(self):
         if self.ds_meta_data.dataset_doi and self.ds_meta_data.deposition_id:
-            return f"https://zenodo.org/record/{self.ds_meta_data.deposition_id}"
+            from app.features.zenodo.services import ZenodoService
+
+            return ZenodoService.get_record_url(self.ds_meta_data.deposition_id)
         return None
 
     def get_files_count(self):
