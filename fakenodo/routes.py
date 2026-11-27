@@ -1,26 +1,7 @@
-from typing import Protocol
-
 from flask import Blueprint, jsonify, request, url_for
-from werkzeug.datastructures import FileStorage
+from werkzeug.exceptions import Conflict
 
-
-class DepositionService(Protocol):
-    """Operations supplied by the FakeNodo business layer.
-
-    Operations on an unknown ID return None (False for delete).
-    Updating metadata keeps the DOI. Publishing a new version with file
-    changes assigns a new DOI and preserves the concept DOI.
-    new_version returns the original deposition and the ID of the draft.
-    """
-
-    def create(self, metadata: dict) -> dict: ...
-    def list_all(self) -> list[dict]: ...
-    def get(self, deposition_id: int) -> dict | None: ...
-    def update_metadata(self, deposition_id: int, metadata: dict) -> dict | None: ...
-    def upload_file(self, deposition_id: int, name: str, file: FileStorage) -> dict | None: ...
-    def publish(self, deposition_id: int) -> dict | None: ...
-    def new_version(self, deposition_id: int) -> tuple[dict, int] | None: ...
-    def delete(self, deposition_id: int) -> bool: ...
+from fakenodo.database import DepositionService
 
 
 def _read_metadata() -> dict | None:
@@ -38,6 +19,10 @@ def _deposition_response(deposition: dict | None, status: int):
 
 def create_depositions_blueprint(store: DepositionService) -> Blueprint:
     depositions = Blueprint("depositions", __name__, url_prefix="/api/deposit/depositions")
+
+    @depositions.errorhandler(Conflict)
+    def deposition_conflict(error: Conflict):
+        return {"message": error.description}, 409
 
     @depositions.post("", strict_slashes=False)
     def create_deposition():
