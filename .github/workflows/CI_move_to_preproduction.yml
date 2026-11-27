@@ -3,7 +3,7 @@ name: Update issue status to Preproduction
 on:
   push:
     branches:
-      - Trunk
+      - trunk
 
 jobs:
   update-issue-status:
